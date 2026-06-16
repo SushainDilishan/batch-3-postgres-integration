@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 
-from models import BusRouteResponse, BusRouteCreate, BusRouteUpdate
+from models import BusRouteResponse, BusRouteCreate, BusRouteUpdate, BusRoutesWithSchedules
 from repository import BusRouteRepository
 from services import BusRouteService
 
@@ -32,3 +32,7 @@ def delete_bus_route(id):
 @router.put("/{route_ud}", response_model=BusRouteResponse)
 def update_route(route_id, update_req: BusRouteUpdate):
     return service.update_route(route_id, update_req)
+
+@router.get("/{route_id}", response_model=BusRoutesWithSchedules)
+def get_with_schedules(route_id: int):
+    return service.get_routes_with_schedules(route_id=route_id)

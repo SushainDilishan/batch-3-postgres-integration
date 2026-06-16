@@ -50,3 +50,10 @@ class BusRouteService:
             return updated_rec
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Server Error {str(e)}")
+
+    def get_routes_with_schedules(self, route_id: int):
+        route = self.repo.get_by_id_with_schedules(route_id)
+        if not route:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND
+                                , detail='bus route not found')
+        return route
