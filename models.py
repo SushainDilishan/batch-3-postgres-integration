@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -24,3 +26,6 @@ class ScheduleCreate(BaseModel):
 class ScheduleResponse(ScheduleCreate):
     id: int
     route_id: int
+
+class BusRoutesWithSchedules(BusRouteResponse):
+    schedules: List[ScheduleResponse] = []

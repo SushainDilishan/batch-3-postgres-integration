@@ -3,10 +3,69 @@ from typing import Optional, List
 from psycopg2.extras import RealDictCursor
 
 from database import get_db_connection
-from models import BusRouteResponse, BusRouteCreate, BusRouteUpdate, ScheduleCreate, ScheduleResponse
+from models import BusRouteResponse, BusRouteCreate, BusRouteUpdate, ScheduleCreate, ScheduleResponse, \
+    BusRoutesWithSchedules
 
 
 class BusRouteRepository:
+
+
+    def get_by_id_with_schedules(self, route_id) -> Optional[BusRoutesWithSchedules]:
+
+        query = """
+        select routes.id as route_id
+                ,routes.route_number
+                , routes.start_location
+                , routes.end_location
+                , routes.bus_type	
+                , routes.ticket_price
+                , sch.id as schedule_id
+                , sch.departure_time
+                , sch.arrival_time
+                , sch.available_seats
+                , sch.status
+                from bus_routes routes
+                left join schedules sch on sch.route_id = routes.id
+                where routes.id = %s
+                order by sch.departure_time asc nulls last;  
+        """
+
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute(query, (route_id,))
+            rows = cursor.fetchall()
+            if not rows:
+                return None
+            route = BusRoutesWithSchedules(
+              id=rows[0]["route_id"],
+              route_number=rows[0]["route_number"],
+              start_location=rows[0]["start_location"],
+              end_location=rows[0]["end_location"],
+              bus_type=rows[0]["bus_type"],
+              ticket_price=rows[0]["ticket_price"],
+              schedules=[]
+            )
+
+            for row in rows:
+                if row["schedule_id"] is not None:
+                    route.schedules.append(
+                        ScheduleResponse(
+                            id=row["schedule_id"],
+                            departure_time=row["departure_time"],
+                            arrival_time=row["arrival_time"],
+                            available_seats=row["available_seats"],
+                            status=row["status"],
+                            route_id=route_id
+                        )
+                    )
+            return route
+        except Exception as e:
+            print(str(e))
+        finally:
+            cursor.close()
+            conn.close()
 
     def get_by_id(self, route_id) -> Optional[BusRouteResponse]:
         conn = get_db_connection()
@@ -136,8 +195,9 @@ class ScheduleRepository:
             created_schedule = cursor.fetchone()
             conn.commit()
             if created_schedule:
-                return ScheduleResponse(**created_schedule)
-
+                return ScheduleResponse(**{**created_schedule
+                , "arrival_time": str(created_schedule["arrival_time"])
+                , "departure_time": str(created_schedule["departure_time"])})
             return  None
         except Exception as e:
             conn.rollback()
