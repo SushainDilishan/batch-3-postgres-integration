@@ -26,4 +26,15 @@ class BusRouteService:
         return self.repo.get_all(offset, limit)
 
     def create_bus_route(self, router_request) -> Optional[BusRouteResponse]:
-        return self.repo.create_bus_route(router_request)
+        try:
+            return self.repo.create_bus_route(router_request)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to create record + {str(e)}")
+
+    def delete_bus_record(self,id) :
+
+        try:
+            return self.repo.delete_record(id)
+
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Record not found + {e}")

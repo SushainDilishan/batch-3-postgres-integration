@@ -24,3 +24,7 @@ def get_all(offset: int = 0 , limit: int = 10): #Query parameters
 @router.post("/", response_model=BusRouteResponse, status_code=201)
 def create_bus_route(router_request: BusRouteCreate):
     return service.create_bus_route(router_request)
+
+@router.delete("/{id}",status_code=200)
+def delete_bus_route(id):
+    return  service.delete_bus_record(id)

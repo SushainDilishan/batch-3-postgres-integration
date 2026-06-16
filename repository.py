@@ -36,7 +36,7 @@ class BusRouteRepository:
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         query = """
-        INSERT into bus_routes (route_number, start_location, end_location, bus_type, ticket_price
+        INSERT into bus_routes (route_number, start_location, end_location, bus_type, ticket_price)
         VALUES (%s, %s, %s, %s, %s) RETURNING * 
         """
         try:
@@ -55,5 +55,38 @@ class BusRouteRepository:
         finally:
             cursor.close()
             conn.close()
+
+    def delete_record(self, id):#delete from bus_routes where id = 2;
+
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        query = """
+        DELETE FROM bus_routes WHERE id = %s
+        RETURNING *
+        """
+
+        try :
+            cursor.execute(query,(id,))
+
+            deleted_record = cursor.fetchone()
+
+            conn.commit()
+
+            return deleted_record is not None
+
+        except Exception as e:
+            conn.rollback()
+            raise e
+
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
+
+
+
 
 
