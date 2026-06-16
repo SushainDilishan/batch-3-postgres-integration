@@ -3,7 +3,7 @@ from typing import Optional, List
 from starlette import status
 from starlette.exceptions import HTTPException
 
-from models import BusRouteResponse
+from models import BusRouteResponse, BusRouteUpdate
 from repository import BusRouteRepository
 
 
@@ -38,3 +38,15 @@ class BusRouteService:
 
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Record not found + {e}")
+
+    def update_route(self, route_id: int, update_request: BusRouteUpdate) -> Optional[BusRouteResponse]:
+
+        try:
+            updated_rec = self.repo.update_by_id(route_id, update_request)
+
+            if not updated_rec:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found to update")
+
+            return updated_rec
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Server Error {str(e)}")

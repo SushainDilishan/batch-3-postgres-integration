@@ -10,3 +10,17 @@ class BusRouteCreate(BaseModel):
 
 class BusRouteResponse(BusRouteCreate):
     id: int
+
+class BusRouteUpdate(BusRouteCreate):
+    pass
+
+class ScheduleCreate(BaseModel):
+
+    departure_time: str
+    arrival_time: str
+    available_seats: int = Field(..., ge=0, le=100)
+    status: str = Field(..., max_length=20)
+
+class ScheduleResponse(ScheduleCreate):
+    id: int
+    route_id: int

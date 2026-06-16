@@ -3,7 +3,7 @@ from typing import Optional, List
 from psycopg2.extras import RealDictCursor
 
 from database import get_db_connection
-from models import BusRouteResponse, BusRouteCreate
+from models import BusRouteResponse, BusRouteCreate, BusRouteUpdate, ScheduleCreate, ScheduleResponse
 
 
 class BusRouteRepository:
@@ -83,8 +83,68 @@ class BusRouteRepository:
             cursor.close()
             conn.close()
 
+    def update_by_id(self, route_id: int, route_update: BusRouteUpdate) -> Optional[BusRouteResponse]:
 
+        query = """
+        UPDATE bus_routes
+        SET route_number = %s,
+        start_location = %s,
+        end_location = %s,
+        bus_type = %s,
+        ticket_price = %s
+        WHERE id = %s
+        RETURNING *  
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
 
+        try:
+            cursor.execute(query, (route_update.route_number
+                                   , route_update.start_location
+                                   ,route_update.end_location,
+                                   route_update.bus_type,
+                                   route_update.ticket_price,
+                                   route_id))
+            updated_rec = cursor.fetchone()
+            conn.commit()
+            return BusRouteResponse(**updated_rec) if updated_rec else None
+        except Exception as e:
+            conn.rollback()
+            print(str(e))
+        finally:
+            cursor.close()
+            conn.close()
+
+class ScheduleRepository:
+
+    def create(self, route_id: int, schedule_create: ScheduleCreate) -> Optional[ScheduleResponse]:
+        query = """
+        INSERT INTO schedules (route_id, departure_time, arrival_time, available_seats, status)
+        VALUES (%s, %s::TIME, %s::TIME, %s, %s)
+        RETURNING *
+        """
+
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        try:
+            cursor.execute(query, (route_id
+                                   , schedule_create.departure_time
+                                   , schedule_create.arrival_time
+                                   , schedule_create.available_seats
+                                   , schedule_create.status))
+            created_schedule = cursor.fetchone()
+            conn.commit()
+            if created_schedule:
+                return ScheduleResponse(**created_schedule)
+
+            return  None
+        except Exception as e:
+            conn.rollback()
+            print(str(e))
+        finally:
+            cursor.close()
+            conn.close()
 
 
 
