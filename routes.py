@@ -33,6 +33,6 @@ def delete_bus_route(id):
 def update_route(route_id, update_req: BusRouteUpdate):
     return service.update_route(route_id, update_req)
 
-@router.get("/{route_id}", response_model=BusRoutesWithSchedules)
+@router.get("/schedules/{route_id}", response_model=BusRoutesWithSchedules)
 def get_with_schedules(route_id: int):
     return service.get_routes_with_schedules(route_id=route_id)

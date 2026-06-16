@@ -38,6 +38,7 @@ class BusRouteRepository:
             rows = cursor.fetchall()
             if not rows:
                 return None
+
             route = BusRoutesWithSchedules(
               id=rows[0]["route_id"],
               route_number=rows[0]["route_number"],
@@ -48,13 +49,15 @@ class BusRouteRepository:
               schedules=[]
             )
 
+            print(rows)
+
             for row in rows:
                 if row["schedule_id"] is not None:
                     route.schedules.append(
                         ScheduleResponse(
                             id=row["schedule_id"],
-                            departure_time=row["departure_time"],
-                            arrival_time=row["arrival_time"],
+                            departure_time=str(row["departure_time"]),
+                            arrival_time=str(row["arrival_time"]),
                             available_seats=row["available_seats"],
                             status=row["status"],
                             route_id=route_id
